@@ -5,16 +5,17 @@ use super::{nodes::*, BehaviorTree};
 
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone)]
-pub enum BehaviorTreeDef<U: UserNodeDefinition> {
-    Sequence(Vec<BehaviorTreeDef<U>>),
-    Selector(Vec<BehaviorTreeDef<U>>),
-    Repeat(Box<BehaviorTreeDef<U>>, usize),
-    RepeatUntilSuccess(Box<BehaviorTreeDef<U>>),
-    RepeatUntilFail(Box<BehaviorTreeDef<U>>),
-    Succeeder(Box<BehaviorTreeDef<U>>),
-    Failer(Box<BehaviorTreeDef<U>>),
-    Inverter(Box<BehaviorTreeDef<U>>),
+pub enum BehaviorTreeDef<U: UserNodeDefinition, W: UserWrapperDefinition<U>> {
+    Sequence(Vec<BehaviorTreeDef<U, W>>),
+    Selector(Vec<BehaviorTreeDef<U, W>>),
+    Repeat(Box<BehaviorTreeDef<U, W>>, usize),
+    RepeatUntilSuccess(Box<BehaviorTreeDef<U, W>>),
+    RepeatUntilFail(Box<BehaviorTreeDef<U, W>>),
+    Succeeder(Box<BehaviorTreeDef<U, W>>),
+    Failer(Box<BehaviorTreeDef<U, W>>),
+    Inverter(Box<BehaviorTreeDef<U, W>>),
     User(U),
+    Wrapper(W, Vec<BehaviorTreeDef<U, W>>),
 }
 
 pub trait UserNodeDefinition {
@@ -40,7 +41,27 @@ where
     }
 }
 
-impl<U: UserNodeDefinition> BehaviorTreeDef<U> {
+pub trait UserWrapperDefinition<U: UserNodeDefinition> {
+    fn create_node_and_wrap(
+        &self,
+        nodes: Vec<
+            Box<dyn BehaviorTree<Model = U::Model, Controller = U::Controller> + Send + Sync>,
+        >,
+    ) -> Box<dyn BehaviorTree<Model = U::Model, Controller = U::Controller> + Send + Sync>;
+}
+
+impl<U: UserNodeDefinition> UserWrapperDefinition<U> for () {
+    fn create_node_and_wrap(
+        &self,
+        _nodes: Vec<
+            Box<dyn BehaviorTree<Model = U::Model, Controller = U::Controller> + Send + Sync>,
+        >,
+    ) -> Box<dyn BehaviorTree<Model = U::Model, Controller = U::Controller> + Send + Sync> {
+        panic!("Cannot create a wrapper with no definition");
+    }
+}
+
+impl<U: UserNodeDefinition, W: UserWrapperDefinition<U>> BehaviorTreeDef<U, W> {
     pub fn create_tree(
         &self,
     ) -> Box<dyn BehaviorTree<Model = U::Model, Controller = U::Controller> + Send + Sync> {
@@ -84,6 +105,13 @@ impl<U: UserNodeDefinition> BehaviorTreeDef<U> {
                 Box::new(Failer::new(node))
             }
             BehaviorTreeDef::User(node_def) => node_def.create_node(),
+            BehaviorTreeDef::Wrapper(wrapper_def, node_defs) => {
+                let nodes = node_defs
+                    .iter()
+                    .map(|node_def| node_def.create_tree())
+                    .collect();
+                wrapper_def.create_node_and_wrap(nodes)
+            }
         }
     }
 }
