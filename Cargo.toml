@@ -7,8 +7,9 @@ edition = "2021"
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"], optional = true }
-lazy_static = { version = "1.5", optional = true }
+lazy_static = "1.5"
+bevy = { version = "0.14", default_features = false, features = ["bevy_asset"], optional = true }
 
 [features]
-default = ["serde", "tracing"]
-tracing = ["lazy_static"]
+default = ["serde"]
+bevy = ["dep:bevy"]

@@ -3,9 +3,10 @@ use serde::{Deserialize, Serialize};
 use super::{nodes::*, UnpoweredFunction};
 
 #[derive(Serialize, Deserialize, Clone)]
+#[cfg_attr(feature = "bevy", derive(bevy::asset::Asset))]
 pub enum UnpoweredTreeDef<
-    U: UserNodeDefinition + Sync + Send,
-    W: UserWrapperDefinition<U> + Sync + Send,
+    U: UserNodeDefinition + Sync + Send + 'static,
+    W: UserWrapperDefinition<U> + Sync + Send + 'static,
 > {
     Sequence(Vec<UnpoweredTreeDef<U, W>>),
     Selector(Vec<UnpoweredTreeDef<U, W>>),
@@ -51,6 +52,21 @@ pub trait UserWrapperDefinition<U: UserNodeDefinition> {
             Box<dyn UnpoweredFunction<Model = U::Model, Controller = U::Controller> + Send + Sync>,
         >,
     ) -> Box<dyn UnpoweredFunction<Model = U::Model, Controller = U::Controller> + Send + Sync>;
+}
+
+#[cfg(feature = "bevy")]
+impl<
+        U: UserNodeDefinition + Send + Sync + 'static,
+        W: UserWrapperDefinition<U> + Send + Sync + 'static,
+    > bevy::reflect::TypePath for UnpoweredTreeDef<U, W>
+{
+    fn type_path() -> &'static str {
+        "behavior_bark::unpowered::tree_def::UnpoweredTreeDef"
+    }
+
+    fn short_type_path() -> &'static str {
+        "UnpoweredTreeDef"
+    }
 }
 
 impl<U: UserNodeDefinition> UserWrapperDefinition<U> for () {

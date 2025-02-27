@@ -24,18 +24,18 @@ impl<M: 'static, C: 'static> BehaviorTree for Inverter<M, C> {
         gas: &mut Option<i32>,
         mut audit: &mut Option<BehaviorTreeAudit>,
     ) -> BehaviorTreeState {
-        audit.enter(self.get_name());
+        audit.enter(&self.name);
         match self.node.resume_with(model, controller, gas, audit) {
             BehaviorTreeState::Complete => {
-                audit.exit(self.get_name(), BehaviorTreeState::Failed);
+                audit.exit(&self.name, BehaviorTreeState::Failed);
                 return BehaviorTreeState::Failed;
             }
             BehaviorTreeState::Failed => {
-                audit.exit(self.get_name(), BehaviorTreeState::Complete);
+                audit.exit(&self.name, BehaviorTreeState::Complete);
                 return BehaviorTreeState::Complete;
             }
             result => {
-                audit.exit(self.get_name(), result);
+                audit.exit(&self.name, result);
                 // Waiting, NeedsGas
                 return result;
             }
@@ -44,9 +44,5 @@ impl<M: 'static, C: 'static> BehaviorTree for Inverter<M, C> {
 
     fn reset(self: &mut Self, model: &Self::Model) {
         self.node.reset(model);
-    }
-
-    fn get_name(self: &Self) -> &String {
-        &self.name
     }
 }

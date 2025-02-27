@@ -31,36 +31,32 @@ impl<M: 'static, C: 'static> BehaviorTree for Repeat<M, C> {
         gas: &mut Option<i32>,
         mut audit: &mut Option<BehaviorTreeAudit>,
     ) -> BehaviorTreeState {
-        audit.enter(self.get_name());
+        audit.enter(&self.name);
         while self.runs_left > 0 {
             let result = self.node.resume_with(model, controller, gas, audit);
             match result {
                 BehaviorTreeState::Failed => {
                     self.runs_left = self.runs;
-                    audit.exit(self.get_name(), result);
+                    audit.exit(&self.name, result);
                     return result;
                 }
                 BehaviorTreeState::Complete => {
                     self.runs_left -= 1;
                 }
                 _ => {
-                    audit.exit(self.get_name(), result);
+                    audit.exit(&self.name, result);
                     // Waiting
                     return result;
                 }
             }
         }
         self.runs_left = self.runs;
-        audit.exit(self.get_name(), BehaviorTreeState::Complete);
+        audit.exit(&self.name, BehaviorTreeState::Complete);
         return BehaviorTreeState::Complete;
     }
 
     fn reset(self: &mut Self, model: &Self::Model) {
         self.runs_left = self.runs;
-    }
-
-    fn get_name(self: &Self) -> &String {
-        &self.name
     }
 }
 pub struct RepeatUntilFail<M, C> {
@@ -87,12 +83,12 @@ impl<M: 'static, C: 'static> BehaviorTree for RepeatUntilFail<M, C> {
         gas: &mut Option<i32>,
         mut audit: &mut Option<BehaviorTreeAudit>,
     ) -> BehaviorTreeState {
-        audit.enter(self.get_name());
+        audit.enter(&self.name);
         loop {
             let result = self.node.resume_with(model, controller, gas, audit);
             match result {
                 BehaviorTreeState::Failed => {
-                    audit.exit(self.get_name(), BehaviorTreeState::Complete);
+                    audit.exit(&self.name, BehaviorTreeState::Complete);
                     return BehaviorTreeState::Complete;
                 }
                 BehaviorTreeState::Complete => {
@@ -101,7 +97,7 @@ impl<M: 'static, C: 'static> BehaviorTree for RepeatUntilFail<M, C> {
                 }
                 _ => {
                     // Waiting, NeedsGas
-                    audit.exit(self.get_name(), result);
+                    audit.exit(&self.name, result);
                     return result;
                 }
             }
@@ -110,10 +106,6 @@ impl<M: 'static, C: 'static> BehaviorTree for RepeatUntilFail<M, C> {
 
     fn reset(self: &mut Self, model: &Self::Model) {
         // Nothing to do.
-    }
-
-    fn get_name(self: &Self) -> &String {
-        &self.name
     }
 }
 
@@ -141,12 +133,12 @@ impl<M: 'static, C: 'static> BehaviorTree for RepeatUntilSuccess<M, C> {
         gas: &mut Option<i32>,
         mut audit: &mut Option<BehaviorTreeAudit>,
     ) -> BehaviorTreeState {
-        audit.enter(self.get_name());
+        audit.enter(&self.name);
         loop {
             let result = self.node.resume_with(model, controller, gas, audit);
             match result {
                 BehaviorTreeState::Complete => {
-                    audit.exit(self.get_name(), BehaviorTreeState::Complete);
+                    audit.exit(&self.name, BehaviorTreeState::Complete);
                     return BehaviorTreeState::Complete;
                 }
                 BehaviorTreeState::Failed => {
@@ -155,7 +147,7 @@ impl<M: 'static, C: 'static> BehaviorTree for RepeatUntilSuccess<M, C> {
                 }
                 _ => {
                     // Waiting, NeedsGas
-                    audit.exit(self.get_name(), result);
+                    audit.exit(&self.name, result);
                     return result;
                 }
             }
@@ -164,9 +156,5 @@ impl<M: 'static, C: 'static> BehaviorTree for RepeatUntilSuccess<M, C> {
 
     fn reset(self: &mut Self, model: &Self::Model) {
         // Nothing to do.
-    }
-
-    fn get_name(self: &Self) -> &String {
-        &self.name
     }
 }

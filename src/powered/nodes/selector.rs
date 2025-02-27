@@ -26,7 +26,7 @@ impl<M: 'static, C: 'static> BehaviorTree for Selector<M, C> {
         gas: &mut Option<i32>,
         mut audit: &mut Option<BehaviorTreeAudit>,
     ) -> BehaviorTreeState {
-        audit.enter(self.get_name());
+        audit.enter(&self.name);
         let mut running_index = self.index.unwrap_or(0);
         loop {
             if let Some(node) = self.nodes.get_mut(running_index) {
@@ -38,19 +38,19 @@ impl<M: 'static, C: 'static> BehaviorTree for Selector<M, C> {
                     }
                     BehaviorTreeState::Complete => {
                         self.index = None;
-                        audit.exit(self.get_name(), result);
+                        audit.exit(&self.name, result);
                         return result;
                     }
                     _ => {
                         // Waiting, NeedsGas
                         self.index = Some(running_index);
-                        audit.exit(self.get_name(), result);
+                        audit.exit(&self.name, result);
                         return result;
                     }
                 }
             } else {
                 self.index = None;
-                audit.exit(self.get_name(), BehaviorTreeState::Failed);
+                audit.exit(&self.name, BehaviorTreeState::Failed);
                 return BehaviorTreeState::Failed;
             }
         }
@@ -58,9 +58,5 @@ impl<M: 'static, C: 'static> BehaviorTree for Selector<M, C> {
 
     fn reset(self: &mut Self, _parameter: &Self::Model) {
         self.index = None;
-    }
-
-    fn get_name(self: &Self) -> &String {
-        &self.name
     }
 }
