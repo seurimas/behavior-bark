@@ -23,6 +23,16 @@ pub enum BehaviorTreeDef<
 }
 
 impl<
+        U: UserNodeDefinition + Send + Sync + 'static,
+        W: UserWrapperDefinition<U> + Send + Sync + 'static,
+    > Default for BehaviorTreeDef<U, W>
+{
+    fn default() -> Self {
+        BehaviorTreeDef::Sequence(vec![])
+    }
+}
+
+impl<
         U: UserNodeDefinition + Send + Sync + std::fmt::Debug + 'static,
         W: UserWrapperDefinition<U> + Send + Sync + std::fmt::Debug + 'static,
     > std::fmt::Debug for BehaviorTreeDef<U, W>
