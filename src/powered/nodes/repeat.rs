@@ -55,7 +55,7 @@ impl<M: 'static, C: 'static> BehaviorTree for Repeat<M, C> {
         return BehaviorTreeState::Complete;
     }
 
-    fn reset(self: &mut Self, model: &Self::Model) {
+    fn reset(self: &mut Self, _model: &Self::Model) {
         self.runs_left = self.runs;
     }
 }
@@ -104,7 +104,7 @@ impl<M: 'static, C: 'static> BehaviorTree for RepeatUntilFail<M, C> {
         }
     }
 
-    fn reset(self: &mut Self, model: &Self::Model) {
+    fn reset(self: &mut Self, _model: &Self::Model) {
         // Nothing to do.
     }
 }
@@ -154,7 +154,7 @@ impl<M: 'static, C: 'static> BehaviorTree for RepeatUntilSuccess<M, C> {
         }
     }
 
-    fn reset(self: &mut Self, model: &Self::Model) {
+    fn reset(self: &mut Self, _model: &Self::Model) {
         // Nothing to do.
     }
 }

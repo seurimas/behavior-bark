@@ -4,7 +4,7 @@ use super::BehaviorTreeState;
 use serde::{Deserialize, Serialize};
 
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum BehaviorTreeMarker {
     Enter(String),
     Marker(String),
@@ -12,7 +12,7 @@ pub enum BehaviorTreeMarker {
 }
 
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[derive(Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct BehaviorTreeAudit {
     events: Vec<BehaviorTreeMarker>,
     place: Vec<String>,

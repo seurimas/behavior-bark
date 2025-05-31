@@ -55,7 +55,7 @@ impl<M: 'static, C: 'static> BehaviorTree for Sequence<M, C> {
         }
     }
 
-    fn reset(self: &mut Self, model: &Self::Model) {
+    fn reset(self: &mut Self, _model: &Self::Model) {
         self.index = None;
     }
 }
