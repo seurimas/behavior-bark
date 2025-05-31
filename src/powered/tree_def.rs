@@ -1,8 +1,11 @@
+/// Defines behavior tree structures and their operations.
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 use super::{nodes::*, BehaviorTree};
 
+/// Enum defining different types of behavior tree definitions,
+/// supporting various node configurations and execution behaviors.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "bevy", derive(bevy::asset::Asset))]
 #[derive(Clone)]
@@ -10,23 +13,32 @@ pub enum BehaviorTreeDef<
     U: UserNodeDefinition + Send + Sync + 'static,
     W: UserWrapperDefinition<U> + Send + Sync + 'static,
 > {
+    /// A sequence node.
     Sequence(Vec<BehaviorTreeDef<U, W>>),
+    /// A selector node for handling alternatives.
     Selector(Vec<BehaviorTreeDef<U, W>>),
+    /// A repeat node with a specified number of repetitions.
     Repeat(Box<BehaviorTreeDef<U, W>>, usize),
+    /// A repeat-until-success node.
     RepeatUntilSuccess(Box<BehaviorTreeDef<U, W>>),
+    /// A repeat-until-fail node.
     RepeatUntilFail(Box<BehaviorTreeDef<U, W>>),
+    /// A node that always succeeds.
     Succeeder(Box<BehaviorTreeDef<U, W>>),
+    /// A node that always fails.
     Failer(Box<BehaviorTreeDef<U, W>>),
+    /// An inverter node that inverts the result state.
     Inverter(Box<BehaviorTreeDef<U, W>>),
+    /// User-defined node.
     User(U),
+    /// Wrapper node allowing nested structures.
     Wrapper(W, Vec<BehaviorTreeDef<U, W>>),
 }
 
 impl<
         U: UserNodeDefinition + Send + Sync + 'static,
         W: UserWrapperDefinition<U> + Send + Sync + 'static,
-    > Default for BehaviorTreeDef<U, W>
-{
+    > Default for BehaviorTreeDef<U, W> {
     fn default() -> Self {
         BehaviorTreeDef::Sequence(vec![])
     }
@@ -35,8 +47,7 @@ impl<
 impl<
         U: UserNodeDefinition + Send + Sync + std::fmt::Debug + 'static,
         W: UserWrapperDefinition<U> + Send + Sync + std::fmt::Debug + 'static,
-    > std::fmt::Debug for BehaviorTreeDef<U, W>
-{
+    > std::fmt::Debug for BehaviorTreeDef<U, W> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             BehaviorTreeDef::Sequence(node_defs) => {
@@ -76,8 +87,7 @@ impl<
 impl<
         U: UserNodeDefinition + Send + Sync + PartialEq + 'static,
         W: UserWrapperDefinition<U> + Send + Sync + PartialEq + 'static,
-    > PartialEq for BehaviorTreeDef<U, W>
-{
+    > PartialEq for BehaviorTreeDef<U, W> {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (
@@ -123,9 +133,12 @@ impl<
     }
 }
 
+/// Trait for user-defined nodes in a behavior tree.
 pub trait UserNodeDefinition {
     type Model: 'static;
     type Controller: 'static;
+
+    /// Creates a behavior tree node from the user-defined node definition.
     fn create_node(
         &self,
     ) -> Box<dyn BehaviorTree<Model = Self::Model, Controller = Self::Controller> + Send + Sync>;
@@ -146,7 +159,9 @@ where
     }
 }
 
+/// Trait for user-defined wrapper nodes in a behavior tree.
 pub trait UserWrapperDefinition<U: UserNodeDefinition> {
+    /// Wraps a collection of nodes with additional functionality.
     fn create_node_and_wrap(
         &self,
         nodes: Vec<
@@ -170,8 +185,7 @@ impl<U: UserNodeDefinition> UserWrapperDefinition<U> for () {
 impl<
         U: UserNodeDefinition + Send + Sync + 'static,
         W: UserWrapperDefinition<U> + Send + Sync + 'static,
-    > bevy::reflect::TypePath for BehaviorTreeDef<U, W>
-{
+    > bevy::reflect::TypePath for BehaviorTreeDef<U, W> {
     fn type_path() -> &'static str {
         "behavior_bark::powered::tree_def::BehaviorTreeDef"
     }
@@ -184,8 +198,8 @@ impl<
 impl<
         U: UserNodeDefinition + Send + Sync + 'static,
         W: UserWrapperDefinition<U> + Send + Sync + 'static,
-    > BehaviorTreeDef<U, W>
-{
+    > BehaviorTreeDef<U, W> {
+    /// Creates a tree from the behavior tree definition.
     pub fn create_tree(
         &self,
     ) -> Box<dyn BehaviorTree<Model = U::Model, Controller = U::Controller> + Send + Sync> {

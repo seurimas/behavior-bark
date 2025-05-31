@@ -1,5 +1,8 @@
 use super::super::*;
 
+/// A Sequence node in a behavior tree that runs its children in
+/// sequence, stopping at the first failure or completing successfully
+/// if all children succeed.
 pub struct Sequence<M, C> {
     name: String,
     nodes: Vec<Box<dyn BehaviorTree<Model = M, Controller = C> + Send + Sync>>,
@@ -7,6 +10,7 @@ pub struct Sequence<M, C> {
 }
 
 impl<M, C> Sequence<M, C> {
+    /// Creates a new Sequence node.
     pub fn new(nodes: Vec<Box<dyn BehaviorTree<Model = M, Controller = C> + Send + Sync>>) -> Self {
         Sequence {
             name: get_bt_id(),
@@ -19,6 +23,8 @@ impl<M, C> Sequence<M, C> {
 impl<M: 'static, C: 'static> BehaviorTree for Sequence<M, C> {
     type Model = M;
     type Controller = C;
+
+    /// Resumes execution, processing each child node in turn.
     fn resume_with(
         self: &mut Self,
         model: &Self::Model,

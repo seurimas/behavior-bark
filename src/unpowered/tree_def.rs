@@ -2,29 +2,44 @@ use serde::{Deserialize, Serialize};
 
 use super::{nodes::*, UnpoweredFunction};
 
+/// Enum defining different unpowered tree configurations,
+/// supporting various node types.
 #[derive(Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "bevy", derive(bevy::asset::Asset))]
 pub enum UnpoweredTreeDef<
     U: UserNodeDefinition + Sync + Send + 'static,
     W: UserWrapperDefinition<U> + Sync + Send + 'static,
 > {
+    /// A sequence node that executes children in order until one fails.
     Sequence(Vec<UnpoweredTreeDef<U, W>>),
+    /// A selector node that executes children until one succeeds.
     Selector(Vec<UnpoweredTreeDef<U, W>>),
+    /// An executor node.
     Executor(Vec<UnpoweredTreeDef<U, W>>),
+    /// A repeat node that runs a specified number of times.
     Repeat(Box<UnpoweredTreeDef<U, W>>, usize),
+    /// A node that repeats until success is achieved.
     RepeatUntilSuccess(Box<UnpoweredTreeDef<U, W>>),
+    /// A node that repeats until failure occurs.
     RepeatUntilFail(Box<UnpoweredTreeDef<U, W>>),
+    /// A node that always succeeds.
     Succeeder(Box<UnpoweredTreeDef<U, W>>),
+    /// A node that always fails.
     Failer(Box<UnpoweredTreeDef<U, W>>),
+    /// An inverter node that inverts the result.
     Inverter(Box<UnpoweredTreeDef<U, W>>),
+    /// User-defined node.
     User(U),
+    /// Wrapper node allowing additional structure.
     Wrapper(W, Vec<UnpoweredTreeDef<U, W>>),
 }
 
+/// Trait for defining user-specific nodes in an unpowered tree.
 pub trait UserNodeDefinition {
     type Model: 'static;
     type Controller: 'static;
 
+    /// Creates a node in the unpowered tree context.
     fn create_node(
         &self,
     ) -> Box<dyn UnpoweredFunction<Model = Self::Model, Controller = Self::Controller> + Send + Sync>;
@@ -45,7 +60,9 @@ where
     }
 }
 
+/// Trait for defining wrapper nodes.
 pub trait UserWrapperDefinition<U: UserNodeDefinition> {
+    /// Wraps a collection of nodes.
     fn create_node_and_wrap(
         &self,
         nodes: Vec<
@@ -84,6 +101,7 @@ impl<U: UserNodeDefinition> UserWrapperDefinition<U> for () {
 impl<U: UserNodeDefinition + Send + Sync, W: UserWrapperDefinition<U> + Send + Sync>
     UnpoweredTreeDef<U, W>
 {
+    /// Creates the tree structure from definitions.
     pub fn create_tree(
         &self,
     ) -> Box<dyn UnpoweredFunction<Model = U::Model, Controller = U::Controller> + Send + Sync>
