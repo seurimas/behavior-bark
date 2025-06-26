@@ -20,7 +20,7 @@ impl<M, C> Failer<M, C> {
 impl<M: 'static, C: 'static> BehaviorTree for Failer<M, C> {
     type Model = M;
     type Controller = C;
-    
+
     /// Resumes execution with the given model and controller, returning Failed regardless of
     /// the wrapped node's state.
     fn resume_with(

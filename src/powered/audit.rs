@@ -4,6 +4,9 @@ use super::BehaviorTreeState;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "serde")]
+use serde_json;
+
 /// Marker for different states in behavior tree execution, used for auditing.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug)]
@@ -37,7 +40,12 @@ pub trait BehaviorTreeAuditTrait {
 
     /// Records data for a node with a data tag and value.
     #[cfg(feature = "serde")]
-    fn data<N: ToString, Tag: ToString, D: serde::Serialize + std::fmt::Debug>(&mut self, _node_name: &N, _data_tag: &Tag, _data_value: &D) {
+    fn data<N: ToString, Tag: ToString, D: serde::Serialize>(
+        &mut self,
+        _node_name: &N,
+        _data_tag: &Tag,
+        _data_value: &D,
+    ) {
         // Default implementation does nothing - not all audit implementations need to handle data
     }
 }
@@ -84,8 +92,25 @@ impl BehaviorTreeAuditTrait for DataLoggerAudit {
         // Ignored
     }
 
-    fn data<N: ToString, Tag: ToString, D: serde::Serialize + std::fmt::Debug>(&mut self, node_name: &N, data_tag: &Tag, data_value: &D) {
-        println!("Node: {}, Tag: {}, Data: {:?}", node_name.to_string(), data_tag.to_string(), data_value);
+    fn data<N: ToString, Tag: ToString, D: serde::Serialize>(
+        &mut self,
+        node_name: &N,
+        data_tag: &Tag,
+        data_value: &D,
+    ) {
+        match serde_json::to_string(data_value) {
+            Ok(json_value) => println!(
+                "Node: {}, Tag: {}, Data: {}",
+                node_name.to_string(),
+                data_tag.to_string(),
+                json_value
+            ),
+            Err(_) => println!(
+                "Node: {}, Tag: {}, Data: <serialization error>",
+                node_name.to_string(),
+                data_tag.to_string()
+            ),
+        }
     }
 }
 
@@ -112,7 +137,12 @@ where
     }
 
     #[cfg(feature = "serde")]
-    fn data<N: ToString, Tag: ToString, D: serde::Serialize + std::fmt::Debug>(&mut self, node_name: &N, data_tag: &Tag, data_value: &D) {
+    fn data<N: ToString, Tag: ToString, D: serde::Serialize>(
+        &mut self,
+        node_name: &N,
+        data_tag: &Tag,
+        data_value: &D,
+    ) {
         if let Some(audit) = self {
             audit.data(node_name, data_tag, data_value);
         }
