@@ -34,6 +34,12 @@ pub trait BehaviorTreeAuditTrait {
 
     /// Records the exit of a node including its state.
     fn exit<N: ToString>(&mut self, node_name: &N, state: BehaviorTreeState);
+
+    /// Records data for a node with a data tag and value.
+    #[cfg(feature = "serde")]
+    fn data<N: ToString, Tag: ToString, D: serde::Serialize + std::fmt::Debug>(&mut self, _node_name: &N, _data_tag: &Tag, _data_value: &D) {
+        // Default implementation does nothing - not all audit implementations need to handle data
+    }
 }
 
 impl BehaviorTreeAuditTrait for BehaviorTreeAudit {
@@ -59,6 +65,30 @@ impl BehaviorTreeAuditTrait for BehaviorTreeAudit {
     }
 }
 
+/// Audit structure that logs data using println! while ignoring other audit operations.
+#[cfg(feature = "serde")]
+#[derive(Default, Debug, Clone)]
+pub struct DataLoggerAudit;
+
+#[cfg(feature = "serde")]
+impl BehaviorTreeAuditTrait for DataLoggerAudit {
+    fn enter<N: ToString>(&mut self, _node_name: &N) {
+        // Ignored
+    }
+
+    fn mark<N: ToString>(&mut self, _node_name: &N) {
+        // Ignored
+    }
+
+    fn exit<N: ToString>(&mut self, _node_name: &N, _state: BehaviorTreeState) {
+        // Ignored
+    }
+
+    fn data<N: ToString, Tag: ToString, D: serde::Serialize + std::fmt::Debug>(&mut self, node_name: &N, data_tag: &Tag, data_value: &D) {
+        println!("Node: {}, Tag: {}, Data: {:?}", node_name.to_string(), data_tag.to_string(), data_value);
+    }
+}
+
 impl<T> BehaviorTreeAuditTrait for &mut Option<T>
 where
     T: BehaviorTreeAuditTrait,
@@ -78,6 +108,13 @@ where
     fn exit<N: ToString>(&mut self, node_name: &N, state: BehaviorTreeState) {
         if let Some(audit) = self {
             audit.exit(node_name, state);
+        }
+    }
+
+    #[cfg(feature = "serde")]
+    fn data<N: ToString, Tag: ToString, D: serde::Serialize + std::fmt::Debug>(&mut self, node_name: &N, data_tag: &Tag, data_value: &D) {
+        if let Some(audit) = self {
+            audit.data(node_name, data_tag, data_value);
         }
     }
 }
