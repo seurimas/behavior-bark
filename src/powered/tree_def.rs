@@ -38,8 +38,7 @@ pub enum BehaviorTreeDef<
 impl<
         U: UserNodeDefinition + Send + Sync + 'static,
         W: UserWrapperDefinition<U> + Send + Sync + 'static,
-    > Default for BehaviorTreeDef<U, W>
-{
+    > Default for BehaviorTreeDef<U, W> {
     fn default() -> Self {
         BehaviorTreeDef::Sequence(vec![])
     }
@@ -48,8 +47,7 @@ impl<
 impl<
         U: UserNodeDefinition + Send + Sync + std::fmt::Debug + 'static,
         W: UserWrapperDefinition<U> + Send + Sync + std::fmt::Debug + 'static,
-    > std::fmt::Debug for BehaviorTreeDef<U, W>
-{
+    > std::fmt::Debug for BehaviorTreeDef<U, W> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             BehaviorTreeDef::Sequence(node_defs) => {
@@ -89,8 +87,7 @@ impl<
 impl<
         U: UserNodeDefinition + Send + Sync + PartialEq + 'static,
         W: UserWrapperDefinition<U> + Send + Sync + PartialEq + 'static,
-    > PartialEq for BehaviorTreeDef<U, W>
-{
+    > PartialEq for BehaviorTreeDef<U, W> {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (
@@ -188,8 +185,7 @@ impl<U: UserNodeDefinition> UserWrapperDefinition<U> for () {
 impl<
         U: UserNodeDefinition + Send + Sync + 'static,
         W: UserWrapperDefinition<U> + Send + Sync + 'static,
-    > bevy::reflect::TypePath for BehaviorTreeDef<U, W>
-{
+    > bevy::reflect::TypePath for BehaviorTreeDef<U, W> {
     fn type_path() -> &'static str {
         "behavior_bark::powered::tree_def::BehaviorTreeDef"
     }
@@ -202,8 +198,7 @@ impl<
 impl<
         U: UserNodeDefinition + Send + Sync + 'static,
         W: UserWrapperDefinition<U> + Send + Sync + 'static,
-    > BehaviorTreeDef<U, W>
-{
+    > BehaviorTreeDef<U, W> {
     /// Creates a tree from the behavior tree definition.
     pub fn create_tree(
         &self,

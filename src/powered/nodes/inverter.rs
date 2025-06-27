@@ -20,7 +20,7 @@ impl<M, C> Inverter<M, C> {
 impl<M: 'static, C: 'static> BehaviorTree for Inverter<M, C> {
     type Model = M;
     type Controller = C;
-
+    
     /// Resumes execution with the given model and controller, inverting
     /// the result state of the node it wraps.
     fn resume_with(
