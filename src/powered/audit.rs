@@ -59,6 +59,15 @@ impl BehaviorTreeAudit {
     }
 }
 
+#[derive(Debug)]
+pub struct PrintlnDataLogger;
+
+impl DataLogger for PrintlnDataLogger {
+    fn log_data(&self, name: &str, label: &str, data: &str) {
+        println!("Data for {} - {}: {}", name, label, data);
+    }
+}
+
 /// Trait defining audit operations for behavior trees.
 pub trait BehaviorTreeAuditTrait {
     /// Records the entry of a node.
