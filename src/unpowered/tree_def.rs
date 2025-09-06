@@ -29,8 +29,10 @@ pub enum UnpoweredTreeDef<
     /// An inverter node that inverts the result.
     Inverter(Box<UnpoweredTreeDef<U, W>>),
     /// User-defined node.
+    #[serde(untagged)]
     User(U),
     /// Wrapper node allowing additional structure.
+    #[serde(untagged)]
     Wrapper(W, Vec<UnpoweredTreeDef<U, W>>),
 }
 
