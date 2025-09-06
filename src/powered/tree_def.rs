@@ -29,10 +29,12 @@ pub enum BehaviorTreeDef<
     Failer(Box<BehaviorTreeDef<U, W>>),
     /// An inverter node that inverts the result state.
     Inverter(Box<BehaviorTreeDef<U, W>>),
-    /// User-defined node.
-    User(U),
     /// Wrapper node allowing nested structures.
+    #[serde(untagged)]
     Wrapper(W, Vec<BehaviorTreeDef<U, W>>),
+    /// User-defined node.
+    #[serde(untagged)]
+    User(U),
 }
 
 impl<
